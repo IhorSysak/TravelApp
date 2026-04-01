@@ -12,6 +12,9 @@ namespace BookingService.Models.Booking
         public string? To { get; init; }
         public DateOnly? Date { get; init; }
         public TimeOnly? Time { get; init; }
+        public Guid? DriverId { get; init; }
+        public Guid? TripId { get; init; }
+        public Guid? PassengerId { get; init; }
         public PagedRequest ToPagedRequest() => new()
         {
             Page = Page,

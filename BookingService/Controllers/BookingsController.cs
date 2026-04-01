@@ -27,11 +27,20 @@ namespace BookingService.Controllers
             var pagedRequest = requestDto.ToPagedRequest();
 
             var query = bookingRepo.GetQueryable();
+            if (requestDto.DriverId.HasValue)
+                query = query.Where(t => t.DriverId == requestDto.DriverId.Value);
+
+            if (requestDto.PassengerId.HasValue)
+                query = query.Where(t => t.PassengerId == requestDto.PassengerId.Value);
+
+            if (requestDto.TripId.HasValue)
+                query = query.Where(t => t.TripId == requestDto.TripId.Value);
+
             if (!string.IsNullOrEmpty(requestDto.From))
-                query = query.Where(t => t.From.ToLower().Contains(requestDto.From.ToLower()));
+                query = query.Where(t => t.From.ToLower().Contains(requestDto.From.Trim().ToLower()));
 
             if (!string.IsNullOrEmpty(requestDto.To))
-                query = query.Where(t => t.To.ToLower().Contains(requestDto.To.ToLower()));
+                query = query.Where(t => t.To.ToLower().Contains(requestDto.To.Trim().ToLower()));
 
             if (requestDto.Date.HasValue)
             {
@@ -76,9 +85,12 @@ namespace BookingService.Controllers
         {
             logger.LogInformation("Send booking request: {request}", request);
 
-            var trip = await tripServiceClient.GetTripAsync(request.TripId, cancellation);
+            var trip = await tripServiceClient.GetTripAsync(request.TripId, cancellation); // need it?
             if (trip is null)
                 return NotFound("Trip not found");
+
+            var booking = request.ToEntity();
+            await bookingRepo.CreateAsync(booking, cancellation);
 
             await messageProducer.SendingMessageAsync(request);
 

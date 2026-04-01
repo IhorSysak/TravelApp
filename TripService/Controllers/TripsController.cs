@@ -6,7 +6,6 @@ using SharedLibrary.Utility;
 using TripService.Entities;
 using TripService.Mapper;
 using TripService.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TripService.Controllers
 {
@@ -26,10 +25,10 @@ namespace TripService.Controllers
                 query = query.Where(t => t.DriverId == requestDto.DriverId.Value);
 
             if (!string.IsNullOrEmpty(requestDto.From))
-                query = query.Where(t => t.From.ToLower().Contains(requestDto.From.ToLower()));
+                query = query.Where(t => t.From.ToLower().Contains(requestDto.From.Trim().ToLower()));
 
             if (!string.IsNullOrEmpty(requestDto.To))
-                query = query.Where(t => t.To.ToLower().Contains(requestDto.To.ToLower()));
+                query = query.Where(t => t.To.ToLower().Contains(requestDto.To.Trim().ToLower()));
             
             if (requestDto.Date.HasValue)
             {
@@ -59,22 +58,6 @@ namespace TripService.Controllers
 
             return Ok(response);
         }
-
-        /*[HttpGet("driver/{driverId:guid}")]
-        [Authorize(Roles = $"{RoleConstants.Driver}")]
-        public async Task<IActionResult> GetDriversTrips(Guid driverId, [FromQuery] PagedRequest request, CancellationToken cancellation)
-        {
-            var trips = await tripRepo.GetPagedAsync(request, filter: t => t.DriverId == driverId, cancellation);
-
-            var response = new PagedResponse<TripResponseDto>(
-                Items: trips.Items.Select(t => t.ToResponseDto()),
-                Page: trips.Page,
-                PageSize: trips.PageSize,
-                TotalCount: trips.TotalCount,
-                TotalPages: trips.TotalPages);
-
-            return Ok(response);
-        }*/
 
         [HttpGet("{id:guid}")]
         [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]

@@ -12,11 +12,18 @@ using SharedLibrary.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 builder.Services.AddDbContext<BookingContext>(option => option.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
 
 builder.Services.AddControllers();
 
 builder.Services.AddHostedService<BookingConsumer>();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options => {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 builder.Services.AddScoped<DbContext, BookingContext>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
