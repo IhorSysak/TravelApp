@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+  </Folder>
+  <Project Path="AuthService/AuthService.csproj" />
+  <Project Path="BookingService/BookingService.csproj" Id="344f8f97-6098-4ca7-9510-2ac7addacb0e" />
+  <Project Path="SharedLibrary/SharedLibrary.csproj" Id="731fbf14-275f-4ea9-a778-3c834699d6c3" />
+  <Project Path="TripService/TripService.csproj" Id="c7d67c59-93f4-47b2-8e0e-a6a195dbfc76" />
+</Solution>
