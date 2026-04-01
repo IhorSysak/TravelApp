@@ -1,0 +1,42 @@
+## Visual Studio 
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.opensdf
+*.sdf
+*.cache
+*.opendb
+*.db
+
+## Build folders
+[Bb]in/
+[Oo]bj/
+[Tt]est[Rr]esults/
+
+## JetBrains / Rider
+.idea/
+*.sln.iml
+
+## User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Publishing
+*.publish.xml
+*.pubxml
+*.pubxml.user
+
+## Environment / Secrets
+.env
+.env.*
+appsettings.Local.json
+
+## OS related
+Thumbs.db
+ehthumbs.db
+Desktop.ini
