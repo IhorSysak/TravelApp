@@ -6,12 +6,12 @@ namespace SharedLibrary.Repositories
 {
     public interface IGenericRepository<T> where T : class
     {
-        Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellation);
+        Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellation = default);
         Task<PagedResponse<T>> GetPagedAsync(PagedRequest request, IQueryable<T> query, CancellationToken cancellation = default);
-        Task<T?> GetByIdAsync(Guid id, CancellationToken cancellation);
-        Task<T> CreateAsync(T entity, CancellationToken cancellation);
-        Task<T?> UpdateAsync(T entity, CancellationToken cancellation);
-        Task<bool> DeleteAsync(Guid id, CancellationToken cancellation);
+        Task<T?> GetByIdAsync(Guid id, CancellationToken cancellation = default);
+        Task<T> CreateAsync(T entity, CancellationToken cancellation = default);
+        Task<T?> UpdateAsync(T entity, CancellationToken cancellation = default);
+        Task<bool> DeleteAsync(Guid id, CancellationToken cancellation = default);
         IQueryable<T> GetQueryable();
     }
 
@@ -41,20 +41,20 @@ namespace SharedLibrary.Repositories
 
         public async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellation = default) => await _dbSet.FindAsync([id, cancellation], cancellation);
 
-        public async Task<T> CreateAsync(T entity, CancellationToken cancellation)
+        public async Task<T> CreateAsync(T entity, CancellationToken cancellation = default)
         {
             await _dbSet.AddAsync(entity, cancellation);
             await context.SaveChangesAsync(cancellation);
             return entity;
         }
 
-        public async Task<T?> UpdateAsync(T updated, CancellationToken cancellation)
+        public async Task<T?> UpdateAsync(T updated, CancellationToken cancellation = default)
         {
             await context.SaveChangesAsync(cancellation);
             return updated;
         }
 
-        public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellation)
+        public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellation = default)
         {
             var entity = await _dbSet.FindAsync(id, cancellation);
             if (entity is null) return false;

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using BookingService.Context;
-using BookingService.Services;
 using RabbitMQ.Client;
 using SharedLibrary.Extensions;
 using SharedLibrary.Infrastructure;
@@ -39,11 +38,6 @@ builder.Services.AddSingleton<IMessageProducer>(sp =>
 {
     var factory = sp.GetRequiredService<IConnectionFactory>();
     return MessageProducer.CreateAsync(factory).GetAwaiter().GetResult();
-});
-
-builder.Services.AddHttpClient<ITripServiceClient, TripServiceClient>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["Services:TripService"]!);
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

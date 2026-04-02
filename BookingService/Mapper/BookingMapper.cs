@@ -38,5 +38,16 @@ namespace BookingService.Mapper
            booking.TotalPrice,
            booking.Status,
            booking.BookedAt);
+
+        public static void ApplyUpdate(this Booking booking, UpdateBookingDto dto)
+        {
+            if (dto.Seats is not null)
+                booking.Seats = dto.Seats.Value;
+
+            if (dto.TotalPrice is not null)
+                booking.TotalPrice = dto.TotalPrice.Value;
+
+            booking.Status = BookingStatus.Pending;
+        }
     }
 }

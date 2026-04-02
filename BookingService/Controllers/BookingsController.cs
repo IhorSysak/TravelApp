@@ -2,7 +2,6 @@
 using BookingService.Mapper;
 using BookingService.Messaging;
 using BookingService.Models.Booking;
-using BookingService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Models.Pagination;
@@ -17,8 +16,7 @@ namespace BookingService.Controllers
     public class BookingsController(
         ILogger<BookingsController> logger,
         IMessageProducer messageProducer,
-        IGenericRepository<Booking> bookingRepo,
-        ITripServiceClient tripServiceClient) : ControllerBase
+        IGenericRepository<Booking> bookingRepo) : ControllerBase
     {
         [HttpGet]
         [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]
@@ -85,18 +83,58 @@ namespace BookingService.Controllers
         {
             logger.LogInformation("Send booking request: {request}", request);
 
-            var trip = await tripServiceClient.GetTripAsync(request.TripId, cancellation); // need it?
-            if (trip is null)
-                return NotFound("Trip not found");
-
             var booking = request.ToEntity();
-            await bookingRepo.CreateAsync(booking, cancellation);
 
+            var created = await bookingRepo.CreateAsync(booking, cancellation);
             await messageProducer.SendingMessageAsync(request);
+
+            var response = created.ToResponseDto();
 
             logger.LogInformation("Booking sent for trip {TripId} by {Passenger}", request.TripId, request.PassengerName);
 
-            return Ok(new { Message = "Booking request sent successfully." });
+            return Ok(response);
+        }
+
+        [HttpPut("{id:guid}")]
+        [Authorize(Roles = RoleConstants.User)]
+        public async Task<IActionResult> UpdateAsync(Guid id, UpdateBookingDto dto, CancellationToken cancellation)
+        {
+            var existing = await bookingRepo.GetByIdAsync(id, cancellation);
+            if (existing is null) return NotFound();
+
+            existing.ApplyUpdate(dto);
+
+            var updated = await bookingRepo.UpdateAsync(existing, cancellation);
+            return Ok(updated?.ToResponseDto());
+        }
+
+        [HttpPatch("{id:guid}/seats")]
+        [Authorize(Roles = RoleConstants.User)]
+        public async Task<IActionResult> UpdateSeatsAsync(Guid id, UpdateBookingSeatsDto dto, CancellationToken cancellation)
+        {
+            var booking = await bookingRepo.GetByIdAsync(id, cancellation);
+            if (booking == null) return NotFound();
+
+            booking.Seats = dto.Seats;
+            booking.TotalPrice = dto.TotalPrice;
+
+            await bookingRepo.UpdateAsync(booking, cancellation);
+
+            return Ok(booking.ToResponseDto());
+        }
+
+        [HttpPatch("{id:guid}/status")]
+        [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]
+        public async Task<IActionResult> UpdateStatus(Guid id, UpdateStatusDto updateDto, CancellationToken cancellation)
+        {
+            var existing = await bookingRepo.GetByIdAsync(id, cancellation);
+            if (existing is null) return NotFound();
+
+            existing.Status = updateDto.Status;
+
+            await bookingRepo.UpdateAsync(existing, cancellation);
+
+            return Ok(existing.ToResponseDto());
         }
 
         [HttpDelete("{id:guid}")]

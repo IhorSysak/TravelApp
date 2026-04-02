@@ -91,6 +91,20 @@ namespace TripService.Controllers
             return Ok(updated?.ToResponseDto());
         }
 
+        [HttpPatch("{id:guid}/available-seats")]
+        [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]
+        public async Task<IActionResult> UpdateAvailableSeatsAsync(Guid id, UpdateAvailableSeatsDto updateDto, CancellationToken cancellation)
+        {
+            var existing = await tripRepo.GetByIdAsync(id, cancellation);
+            if (existing is null) return NotFound();
+
+            existing.AvailableSeats = updateDto.AvailableSeats;
+
+            var updated = await tripRepo.UpdateAsync(existing, cancellation);
+
+            return updated is null ? BadRequest("Could not update seats") : Ok(updated.ToResponseDto());
+        }
+
         [HttpDelete("{id:guid}")]
         [Authorize(Roles = RoleConstants.Driver)]
         public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken cancellation)

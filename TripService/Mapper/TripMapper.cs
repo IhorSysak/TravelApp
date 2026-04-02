@@ -1,5 +1,4 @@
-﻿using SharedLibrary.Models.Pagination;
-using TripService.Entities;
+﻿using TripService.Entities;
 using TripService.Models;
 
 namespace TripService.Mapper
