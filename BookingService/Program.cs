@@ -8,6 +8,7 @@ using SharedLibrary.Infrastructure;
 using System.Text;
 using BookingService.Messaging;
 using SharedLibrary.Repositories;
+using BookingService.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,8 @@ builder.Services.AddDbContext<BookingContext>(option => option.UseNpgsql(builder
 builder.Services.AddControllers();
 
 builder.Services.AddHostedService<BookingConsumer>();
+
+builder.Services.AddSignalR();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options => {
@@ -58,7 +61,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader();
+        policy.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
     });
 });
 
@@ -78,6 +81,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("CorsPolicy");
+
+app.MapHub<BookingHub>("/hubs/bookings");
 
 app.UseHttpsRedirection();
 

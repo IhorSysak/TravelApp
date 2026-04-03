@@ -1,4 +1,8 @@
-﻿using BookingService.Models.Booking;
+﻿using BookingService.Context;
+using BookingService.Hubs;
+using BookingService.Models.Booking;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -8,10 +12,9 @@ namespace BookingService.Messaging
 {
     public class BookingConsumer(
         IConnectionFactory factory,
+        IHubContext<BookingHub> hubContext,
         ILogger<BookingConsumer> logger) : BackgroundService
     {
-        public static readonly List<BookingRequestDto> ReceivedBookings = [];
-
         protected override async Task ExecuteAsync(CancellationToken cancellation)
         {
             var connection = await factory.CreateConnectionAsync(cancellation);
@@ -34,11 +37,24 @@ namespace BookingService.Messaging
                 try
                 {
                     var json = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-                    var booking = JsonSerializer.Deserialize<BookingRequestDto>(json);
-                    if (booking is not null)
+                    var bookingDto = JsonSerializer.Deserialize<BookingRequestDto>(json);
+                    if (bookingDto is not null)
                     {
-                        ReceivedBookings.Add(booking);
-                        logger.LogInformation("New Booking for trip {TripId} — with passanger {Passenger}", booking.TripId, booking.PassengerName);
+                        logger.LogInformation("New booking for trip {TripId} — passanger {PassengerName}", bookingDto.TripId, bookingDto.PassengerName);
+
+                        await hubContext.Clients
+                            .Group($"driver-{bookingDto.DriverId}")
+                            .SendAsync("NewBooking",
+                            new
+                            {
+                                bookingDto.TripId,
+                                bookingDto.PassengerName,
+                                bookingDto.PassengerEmail,
+                                bookingDto.From,
+                                bookingDto.To,
+                                bookingDto.Seats,
+                                bookingDto.TotalPrice
+                            }, cancellation);
                     }
 
                     // Acknowledge the message after processing
