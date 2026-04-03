@@ -1,0 +1,157 @@
+<div class="trip-form-container">
+    <div class="form-header">
+        <h1>{{ isEditMode() ? 'Edit Trip' : 'Create New Trip' }}</h1>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">
+             ← Back to Trips
+        </button>
+    </div>
+
+  @if (error()) {
+    <div class="alert alert-error">
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading">
+      <p>Loading trip details...</p>
+    </div>
+  } @else {
+    <form [formGroup]="tripForm" (ngSubmit)="onSubmit()" class="trip-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="from"> From *</label>
+                <input 
+                    id="from"
+                    type="text"
+                    formControlName="from"
+                    placeholder="Departure city"
+                    [class.error]="hasFieldError('from')"
+                >
+                @if (hasFieldError('from')) {
+                    <span class="error-message"> {{ getErrorMessage('from') }} </span>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="to">To *</label>
+                <input
+                    id="to"
+                    type="text"
+                    formControlName="to"
+                    placeholder="Destination city"
+                    [class.error]="hasFieldError('to')"
+                >
+                @if (hasFieldError('to')) {
+                    <span class="error-message">{{ getErrorMessage('to') }}</span>
+                }
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="departureDate">Departure Date *</label>
+                <input
+                    id="departureDate"
+                    type="date"
+                    formControlName="departureDate"
+                    [min]="getMinDate()"
+                    [class.error]="hasFieldError('departureDate')"
+                >
+                @if (hasFieldError('departureDate')) {
+                    <span class="error-message">{{ getErrorMessage('departureDate') }}</span>
+                }
+            </div>
+
+             <div class="form-group">
+                <label for="departureTime">Departure Time *</label>
+                <input
+                    id="departureTime"
+                    type="time"
+                    formControlName="departureTime"
+                    [class.error]="hasFieldError('departureTime')"
+                >
+                @if (hasFieldError('departureTime')) {
+                    <span class="error-message">{{ getErrorMessage('departureTime') }}</span>
+                }
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="totalSeats">Total Seats *</label>
+                <input
+                    id="totalSeats"
+                    type="number"
+                    formControlName="totalSeats"
+                    min="1"
+                    max="8"
+                    [class.error]="hasFieldError('totalSeats')"
+                >
+                @if (hasFieldError('totalSeats')) {
+                    <span class="error-message">{{ getErrorMessage('totalSeats') }}</span>
+                }
+                <small class="help-text">Maximum 8 seats per trip</small>
+            </div>
+
+            <div class="form-group">
+                <label for="pricePerSeat">Price per Seat (₴) *</label>
+                <input
+                    id="pricePerSeat"
+                    type="number"
+                    formControlName="pricePerSeat"
+                    min="0"
+                    step="10"
+                    [class.error]="hasFieldError('pricePerSeat')"
+                >
+                @if (hasFieldError('pricePerSeat')) {
+                    <span class="error-message">{{ getErrorMessage('pricePerSeat') }}</span>
+                }
+            </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+            <label for="carInfo">Car Information</label>
+            <input
+                id="carInfo"
+                type="text"
+                formControlName="carInfo"
+                placeholder="e.g., Toyota Camry, Black, License: AA 1234 BB">
+            <small class="help-text">Optional: Help passengers identify your car</small>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea
+                id="description"
+                formControlName="description"
+                rows="3"
+                placeholder="Additional details about the trip, stops, or requirements...">
+            </textarea>
+            <small class="help-text">Optional: Any additional information for passengers</small>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="onCancel()"
+            [disabled]="isSubmitting()">
+            Cancel
+        </button>
+        <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="tripForm.invalid || isSubmitting()">
+            @if(isSubmitting()) {
+                <span>Saving...</span>
+            } @else {
+                <span>{{ isEditMode() ? 'Update Trip' : 'Create Trip' }}</span>
+            }
+        </button>
+      </div>
+    </form>
+    }
+</div>

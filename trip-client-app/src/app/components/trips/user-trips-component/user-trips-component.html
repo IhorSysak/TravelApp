@@ -1,0 +1,51 @@
+<div class="user-trips-container">
+    <div class="trips-header">
+    <h1>Trips</h1>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-error">
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading">
+      <p>Loading trips...</p>
+    </div>
+  } @else {
+
+    <app-filter-bar-component
+          (filterChanged)="handleFilterChange($event)"/>
+
+    @if (displayedTrips().length === 0) {
+      <div class="empty-state">
+        <p>At the moment, we don’t have any available trips.</p>
+      </div>
+    } @else {
+        <div class="trips-list">
+          @for (trip of displayedTrips(); track trip.id) {
+            <app-trip-card-component
+              [trip]="trip"
+              [mode]="UserRole.USER"
+              (bookClick)="selectedTripForBooking.set($event)" />
+          }
+        </div>
+
+        @if(selectedTripForBooking(); as trip) {
+          <app-booking-form-component
+            [trip]="trip"
+            (cancel)="selectedTripForBooking.set(null)"
+            (success)="onBookingSuccess()"/>
+        }
+
+        <app-pagination-component
+          [currentPage]="pagination.currentPage()"
+          [totalPages]="pagination.totalPages()"
+          [hasPreviousPage]="pagination.hasPreviousPage()"
+          [hasNextPage]="pagination.hasNextPage()"
+          (previousPageClick)="previousPage()"
+          (nextPageClick)="nextPage()" />
+    }
+  }
+</div>

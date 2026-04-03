@@ -1,0 +1,37 @@
+<div class="booking-overlay" (click)="cancel.emit()">
+    <div class="booking-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>Complete Your Booking</h2>
+            <button class="btn close-btn" (click)="cancel.emit()">&times;</button>
+        </div>
+        <div class="trip-summary">
+            <div class="route">{{ trip().from }} → {{ trip().to }}</div>
+            <div class="price-info">${{ trip().pricePerSeat }} per seat</div>
+        </div>
+        <div class="form-body">
+            <div class="input-group">
+                <label for="seats">Number of Seats</label>
+                <input 
+                    id="seats"
+                    type="number" 
+                    [(ngModel)]="seats"
+                    [max]="trip().availableSeats"
+                    min="1"
+                    class="form-control">
+                <span class="hint">{{ trip().availableSeats }} seats available</span>
+            </div>
+            <div class="total-section">
+                <span class="label">Total Price:</span>
+                <span class="value">${{ totalPrice() }}</span>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" (click)="cancel.emit()" [disabled]="isSubmitting()">
+                Cancel
+            </button>
+            <button class="btn btn-primary btn-sm" (click)="confirmBooking()" [disabled]="isSubmitting() || seats() < 1 || seats() > trip().availableSeats">
+                {{ isSubmitting() ? 'Booking...' : 'Confirm Booking' }}
+            </button>
+        </div>
+    </div>
+</div>

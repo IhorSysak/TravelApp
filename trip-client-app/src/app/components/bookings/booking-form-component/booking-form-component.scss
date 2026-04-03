@@ -1,0 +1,63 @@
+.booking-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.booking-modal {
+  background: white;
+  width: 90%;
+  max-width: 450px;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    h2 { font-size: 1.5rem; margin: 0; color: #1a202c; }
+    .close-btn { background: none; border: none; font-size: 2rem; cursor: pointer; color: #a0aec0; }
+  }
+}
+
+.trip-summary {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  .route { font-weight: 700; color: #2d3748; }
+  .price-info { font-size: 0.85rem; color: #718096; }
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+  label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #4a5568; }
+  .form-control { width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; }
+  .hint { font-size: 0.75rem; color: #718096; display: block; margin-top: 0.25rem; }
+}
+
+.total-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-top: 1px solid #edf2f7;
+  .label { font-weight: 600; color: #4a5568; }
+  .value { font-size: 1.5rem; font-weight: 800; color: #667eea; }
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  button { flex: 1; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+  .btn-outline { background: white; border: 1px solid #e2e8f0; color: #4a5568; }
+  .btn-primary { background: #667eea; border: none; color: white; }
+}

@@ -1,0 +1,53 @@
+@if(showNavbar()){
+    <nav class="navbar">
+    <div class="navbar-container">
+        <div class="navbar-brand">
+            <a routerLink="/" class="brand-logo">TripBooking</a>
+        </div>
+
+        <div class="navbar-menu">
+      @if (isDriver()) {
+        <div class="nav-items">
+          <a routerLink="driver/trips" routerLinkActive="active" class="nav-link">
+            My Trips
+          </a>
+          <a routerLink="driver/bookings" routerLinkActive="active" class="nav-link">
+            Bookings
+          </a>
+        </div>
+      } @else if (isRegularUser()) {
+        <div class="nav-items">
+          <a routerLink="/user/trips" routerLinkActive="active" class="nav-link">
+            Browse Trips
+          </a>
+          <a routerLink="user/bookings" routerLinkActive="active" class="nav-link">
+            My Bookings
+          </a>
+        </div>
+      }
+    </div>
+
+    <div class="navbar-user">
+      @if (currentUser(); as user) {
+        <div class="user-greeting">
+          <span class="greeting-text">Hello, {{ user.firstName }}!</span>
+        </div>
+
+        <button
+          type="button"
+          class="btn-logout"
+          (click)="this.logout()"
+          [attr.aria-label]="'Logout ' + user.firstName"
+        >
+          Logout
+        </button>
+      } 
+      @else {
+        <a routerLink="/login" class="btn-login">
+          Login
+        </a>
+      }
+    </div>
+    </div>
+</nav>
+}

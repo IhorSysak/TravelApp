@@ -1,0 +1,150 @@
+.user-trips-container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+}
+
+.trips-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+
+  h1 {
+    color: #333;
+    margin: 0;
+    font-size: 2rem;
+  }
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+
+  &.alert-error {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+  }
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+
+  p {
+    font-size: 1.1rem;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+
+  p {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn {
+    margin: 0 auto;
+  }
+}
+
+.trips-list {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-block;
+
+  &.btn-primary {
+    background-color: #667eea;
+    color: white;
+
+    &:hover {
+      background-color: #764ba2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    &:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+
+  &.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+
+    &:hover {
+      background-color: #5a6268;
+    }
+  }
+
+  &.btn-info {
+    background-color: #0dcaf0;
+    color: #000;
+
+    &:hover {
+      background-color: #31d5f8;
+    }
+  }
+
+  &.btn-danger {
+    background-color: #dc3545;
+    color: white;
+
+    &:hover {
+      background-color: #c82333;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .trips-header {
+    flex-direction: column;
+    align-items: stretch;
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  .trip-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .trip-details {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .trip-actions {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,43 @@
+<div class="forbidden-container">
+  <div class="forbidden-card">
+    <div class="forbidden-icon">
+      <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM13 17h-2v-6h2v6zm0-8h-2V7h2v2z" fill="#dc3545"/>
+      </svg>
+    </div>
+
+    <h1>Access Forbidden</h1>
+
+    <p class="forbidden-message">
+      You don't have permission to access this resource.
+    </p>
+
+    @if (currentUser()) {
+      <p class="user-info">
+        Logged in as: <strong>{{ currentUser()!.firstName }} {{ currentUser()!.lastName }}</strong>
+      </p>
+    }
+
+    <div class="forbidden-actions">
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="goToDashboard()"
+      >
+        Go to Dashboard
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="logout()"
+      >
+        Logout
+      </button>
+    </div>
+
+    <div class="forbidden-help">
+      <p>If you believe this is an error, please contact your administrator.</p>
+    </div>
+  </div>
+</div>

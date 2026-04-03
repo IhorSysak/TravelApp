@@ -1,0 +1,21 @@
+<div class="pagination">
+  <button
+    type="button"
+    class="btn btn-pagination"
+    (click)="previousPageClick.emit()"
+    [disabled]="!hasPreviousPage()">
+    ← Previous
+  </button>
+
+  <span class="page-info">
+    Page {{ currentPage() }} of {{ totalPages() }}
+  </span>
+
+  <button
+    type="button"
+    class="btn btn-pagination"
+    (click)="nextPageClick.emit()"
+    [disabled]="!hasNextPage()">
+    Next →
+  </button>
+</div>

@@ -1,0 +1,129 @@
+.forbidden-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
+}
+
+.forbidden-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  padding: 3rem 2rem;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+
+  h1 {
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    font-weight: 600;
+  }
+}
+
+.forbidden-icon {
+  margin-bottom: 1.5rem;
+
+  svg {
+    display: block;
+    margin: 0 auto;
+  }
+}
+
+.forbidden-message {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.user-info {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  color: #495057;
+  font-size: 0.95rem;
+
+  strong {
+    color: #333;
+  }
+}
+
+.forbidden-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 140px;
+
+    &.btn-primary {
+      background-color: #667eea;
+      color: white;
+
+      &:hover {
+        background-color: #764ba2;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+    }
+
+    &.btn-secondary {
+      background-color: #6c757d;
+      color: white;
+
+      &:hover {
+        background-color: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+      }
+    }
+  }
+}
+
+.forbidden-help {
+  border-top: 1px solid #e9ecef;
+  padding-top: 1.5rem;
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+
+  p {
+    margin: 0;
+  }
+}
+
+// Responsive design
+@media (max-width: 480px) {
+  .forbidden-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .forbidden-actions {
+    flex-direction: column;
+    align-items: center;
+
+    .btn {
+      width: 100%;
+      max-width: 200px;
+    }
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+}

@@ -1,0 +1,27 @@
+<div class="filter-bar">
+  <input
+    type="text"
+    placeholder="From"
+    class="filter-input"
+    [ngModel]="fromValue()"
+    (ngModelChange)="fromValue.set($event)" />
+  <input
+    type="text"
+    placeholder="To"
+    class="filter-input"
+    [ngModel]="toValue()"
+    (ngModelChange)="toValue.set($event)" />
+  <input
+    type="date"
+    class="filter-input"
+    [ngModel]="dateValue()"
+    (ngModelChange)="dateValue.set($event)" />
+  <input
+    type="time"
+    class="filter-input"
+    [ngModel]="timeValue()"
+    (ngModelChange)="timeValue.set($event)" />
+
+  <button class="btn btn-primary" (click)="apply()">Search</button>
+  <button class="btn btn-secondary" (click)="clear()">Clear</button>
+</div>

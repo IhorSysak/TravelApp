@@ -1,0 +1,218 @@
+.booking-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+  margin-bottom: 1rem;
+
+  &:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  &.is-expanded {
+    border-left: 4px solid #667eea;
+    border-color: #667eea;
+  }
+}
+.booking-header-content {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.booking-main-info {
+  flex: 1;
+  .booking-route {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a202c;
+  }
+}
+
+.booking-pills {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+
+  .pill {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    background: #f7fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 6px;
+    color: #4a5568;
+    
+    .status-pill {
+      font-weight: 700;
+      text-transform: uppercase;
+      &[data-status="Approved"] { background: #f0fff4; color: #2f855a; border-color: #c6f6d5; }
+      &[data-status="Pending"] { background: #fffaf0; color: #c05621; border-color: #feebc8; }
+      &[data-status="Cancelled"] { background: #fff5f5; color: #c53030; border-color: #feb2b2; }
+  }
+  }
+}
+
+.booking-price {
+  text-align: center;
+  padding: 0 1.5rem;
+  border-left: 1px solid #edf2f7;
+  .amount {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #667eea;
+  }
+  .label {
+    font-size: 0.7rem;
+    color: #718096;
+    text-transform: uppercase;
+  }
+}
+
+.booking-details-expanded {
+  padding: 1.5rem;
+  background: #f9faff;
+  border-top: 1px solid #edf2f7;
+  animation: slideDown 0.2s ease-out;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.25rem;
+
+  .detail-group {
+    label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #a0aec0;
+      margin-bottom: 0.25rem;
+    }
+    .value {
+      font-size: 0.9rem;
+      color: #2d3748;
+      font-weight: 500;
+    }
+  }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.booking-actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+
+  .btn {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+
+    &.btn-sm {
+      white-space: nowrap;
+    }
+  }
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-block;
+
+  &.btn-success {
+    background-color: #48bb78;
+    color: white;
+    &:hover { background-color: #38a169; }
+  }
+
+  &.btn-primary {
+    background-color: #667eea;
+    color: white;
+
+    &:hover {
+      background-color: #764ba2;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    &:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+
+  &.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+
+    &:hover {
+      background-color: #5a6268;
+    }
+  }
+
+  &.btn-info {
+    background-color: #0dcaf0;
+    color: #000;
+
+    &:hover {
+      background-color: #31d5f8;
+    }
+  }
+
+  &.btn-danger {
+    background-color: #dc3545;
+    color: white;
+
+    &:hover {
+      background-color: #c82333;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .bookings-header {
+    flex-direction: column;
+    align-items: stretch;
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  .booking-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .booking-details {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .booking-actions {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

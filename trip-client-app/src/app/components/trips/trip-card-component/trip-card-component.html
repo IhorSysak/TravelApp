@@ -1,0 +1,75 @@
+<div class="trip-card" [class.is-expanded]="isExpanded()">
+  <div class="trip-header-content">
+    <div class="trip-main-info">
+      <h3 class="trip-route">{{ trip().from }} → {{ trip().to }}</h3>
+      <div class="trip-pills">
+        <span class="pill">
+          <i class="icon-calendar"></i> {{ formatDate(trip().departureTime) }}
+        </span>
+        <span class="pill" [class.low-seats]="trip().availableSeats < 2">
+          <strong>{{ trip().availableSeats }}</strong> seats left
+        </span>
+      </div>
+    </div>
+
+    <div class="trip-price">
+      <span class="amount">${{ trip().pricePerSeat }}</span>
+      <span class="label">per seat</span>
+    </div>
+
+    <div class="trip-actions">
+      @if (mode() === UserRole.DRIVER) {
+        <a [routerLink]="['/driver/trips', trip().id, 'edit']" class="btn btn-secondary btn-sm">Edit</a>
+        <a [routerLink]="['/driver/bookings', trip().id]" class="btn btn-info btn-sm">Bookings</a>
+      }
+      @if (mode() === UserRole.USER && trip().availableSeats > 0) {
+        <button type="button" class="btn btn-primary btn-sm" (click)="(bookClick.emit(trip()))">
+          Book Now
+        </button>
+      }
+
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="toggleDetails()">
+        {{ isExpanded() ? 'Hide' : 'Details' }}
+      </button>
+
+      @if (mode() === UserRole.DRIVER) {
+        <button type="button" class="btn btn-danger btn-sm" (click)="deleteClick.emit(trip().id)">Delete</button>
+      }
+    </div>
+  </div>
+
+  @if (isExpanded()) {
+    <div class="trip-details-expanded">
+      <div class="details-grid">
+        <div class="detail-group">
+          <label>Driver Information</label>
+          <div class="value">{{ trip().driverName }}</div>
+        </div>
+
+        @if (trip().carInfo) {
+          <div class="detail-group">
+            <label>Vehicle</label>
+            <div class="value">{{ trip().carInfo }}</div>
+          </div>
+        }
+
+        <div class="detail-group">
+          <label>Statistics</label>
+          <div class="value">{{ getBookedSeats() }} seats booked total</div>
+        </div>
+
+        <div class="detail-group">
+          <label>Timeline</label>
+          <div class="value">Created: {{ formatDate(trip().createdAt) }}</div>
+        </div>
+      </div>
+
+      @if (trip().description) {
+        <div class="description-section">
+          <label>Driver's Note</label>
+          <p>{{ trip().description }}</p>
+        </div>
+      }
+    </div>     
+  }
+</div>

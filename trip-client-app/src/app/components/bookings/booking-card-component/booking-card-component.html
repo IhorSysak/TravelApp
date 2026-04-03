@@ -1,0 +1,71 @@
+<div class="booking-card" [class.is-expanded]="isExpanded()">
+  <div class="booking-header-content">
+    <div class="booking-main-info">
+      <h3 class="booking-route">{{ booking().from }} → {{ booking().to }}</h3>
+      <div class="booking-pills">
+        <span class="pill">
+          <i class="icon-calendar"></i> {{ formatDate(booking().departureTime) }}
+        </span>
+        <span class="pill">
+          <strong>{{ booking().seats }}</strong> seats
+        </span>
+        <span class="pill status-pill" [attr.data-status]="booking().status">
+          {{ booking().status }} 
+        </span>
+      </div>
+    </div>
+
+    <div class="booking-price">
+      <span class="amount">${{ booking().totalPrice }}</span>
+      <span class="label">total price</span>
+    </div>
+
+    <div class="booking-actions">
+      @if (mode() === UserRole.DRIVER && booking().status === 'Pending') {
+        <button type="button" class="btn btn-success btn-sm" (click)="approveClick.emit(booking().id)">Approve</button>
+      }
+
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="toggleDetails()">
+        {{ isExpanded() ? 'Hide' : 'Details' }}
+      </button>
+
+      @if (booking().status === 'Pending') {
+        <button type="button" class="btn btn-danger btn-sm" (click)="cancelClick.emit(booking().id)">
+          {{ mode() === UserRole.DRIVER ? 'Reject' : 'Cancel' }}
+      </button>
+      }
+    </div>
+  </div>
+
+  @if (isExpanded()) {
+    <div class="booking-details-expanded">
+      <div class="details-grid">
+        @if (mode() === UserRole.USER) {
+          <div class="detail-group">
+            <label>Driver</label>
+            <div class="value">{{ booking().driverName }}</div>
+          </div>
+        } @else if (mode() === UserRole.DRIVER) {
+          <div class="detail-group">
+            <label>Passenger</label>
+            <div class="value">{{ booking().passengerName }}</div>
+          </div>
+          <div class="detail-group">
+            <label>Passenger Contact</label>
+            <div class="value">{{ booking().passengerEmail }}</div>
+          </div>
+        }
+
+        <div class="detail-group">
+          <label>Booking Status</label>
+          <div class="value">{{ booking().status }}</div>
+        </div>
+
+        <div class="detail-group">
+          <label>Timeline</label>
+          <div class="value">Created: {{ formatDate(booking().bookedAt) }}</div>
+        </div>
+      </div>
+    </div>     
+  }
+</div>
