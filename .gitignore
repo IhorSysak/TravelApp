@@ -40,3 +40,13 @@ appsettings.Local.json
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# --- Angular / Node ---
+node_modules/
+.angular/
+dist/
+.vscode/
+.editorconfig
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
