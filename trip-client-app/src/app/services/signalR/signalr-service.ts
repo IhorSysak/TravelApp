@@ -4,7 +4,8 @@ import { AuthService } from '../auth/auth-service';
 import * as signalR from '@microsoft/signalr';
 import { UserRole } from '../../models/auth.model';
 import { environment } from '../../environments/environment.development';
-import { BookingNotification } from '../../models/bookingNotification.model';
+import { HttpClient } from '@angular/common/http';
+import { NotificationService } from '../notifications/notification-service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,7 @@ import { BookingNotification } from '../../models/bookingNotification.model';
 export class SignalRService {
   private readonly toastService = inject(ToastService);
   private readonly authService = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
 
   private hubConnection: signalR.HubConnection | null = null;
 
@@ -26,8 +28,9 @@ export class SignalRService {
       .withAutomaticReconnect()
       .build();
 
-    this.hubConnection.on('NewBooking', (booking: BookingNotification) => {
-      this.toastService.info(`New booking! ${booking.passengerName} booked ${booking.seats} seat(s) from ${booking.from} to ${booking.to}. Total price: $${booking.totalPrice}`);
+    this.hubConnection.on('NewBooking', (notification: any) => {
+      this.toastService.info(notification.message);
+      this.notificationService.markAsRead(notification.notificationId);
     });
 
     this.hubConnection.start()

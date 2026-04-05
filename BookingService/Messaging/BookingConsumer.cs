@@ -1,8 +1,8 @@
 ﻿using BookingService.Context;
+using BookingService.Entities;
 using BookingService.Hubs;
 using BookingService.Models.Booking;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -13,6 +13,7 @@ namespace BookingService.Messaging
     public class BookingConsumer(
         IConnectionFactory factory,
         IHubContext<BookingHub> hubContext,
+        IServiceScopeFactory scopeFactory,
         ILogger<BookingConsumer> logger) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken cancellation)
@@ -40,6 +41,21 @@ namespace BookingService.Messaging
                     var bookingDto = JsonSerializer.Deserialize<BookingRequestDto>(json);
                     if (bookingDto is not null)
                     {
+                        using var scope = scopeFactory.CreateScope();
+                        var dbContext = scope.ServiceProvider.GetRequiredService<BookingContext>();
+
+                        var notification = new Notification
+                        {
+                            Id = Guid.NewGuid(),
+                            DriverId = bookingDto.DriverId,
+                            Message = $"New booking! {bookingDto.PassengerName} booked {bookingDto.From} → {bookingDto.To}",
+                            IsRead = false,
+                            CreatedAt = DateTimeOffset.UtcNow
+                        };
+
+                        dbContext.Notifications.Add(notification);
+                        await dbContext.SaveChangesAsync(cancellation);
+
                         logger.LogInformation("New booking for trip {TripId} — passanger {PassengerName}", bookingDto.TripId, bookingDto.PassengerName);
 
                         await hubContext.Clients
@@ -53,7 +69,8 @@ namespace BookingService.Messaging
                                 bookingDto.From,
                                 bookingDto.To,
                                 bookingDto.Seats,
-                                bookingDto.TotalPrice
+                                bookingDto.TotalPrice,
+                                NotificationId = notification.Id
                             }, cancellation);
                     }
 

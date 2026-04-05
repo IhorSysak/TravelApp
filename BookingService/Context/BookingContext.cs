@@ -6,6 +6,7 @@ namespace BookingService.Context
     public class BookingContext(DbContextOptions<BookingContext> options) : DbContext(options)
     {
         public DbSet<Booking> Bookings { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
