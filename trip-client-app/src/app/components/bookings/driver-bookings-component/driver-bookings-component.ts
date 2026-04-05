@@ -1,15 +1,14 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { PaginationComponent } from '../../pagination-component/pagination-component';
 import { BookingCardComponent } from '../booking-card-component/booking-card-component';
 import { PaginationService } from '../../../services/pagination/pagination-service';
 import { FilterBarComponent } from '../../filter-bar-component/filter-bar-component';
-import { AuthService } from '../../../services/auth/auth-service';
 import { Booking, BookingFilter, BookingStatus } from '../../../models/booking.model';
-import { switchMap, throwError } from 'rxjs';
+import { switchMap } from 'rxjs';
 import { BookingsService } from '../../../services/bookings/bookings-service';
 import { PagedResponse } from '../../../models/pagging.model';
 import { UserRole } from '../../../models/auth.model';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ToastService } from '../../../services/toast/toast-service';
 import { TripsService } from '../../../services/trips/trips-service';
 
@@ -19,37 +18,60 @@ import { TripsService } from '../../../services/trips/trips-service';
   templateUrl: './driver-bookings-component.html',
   styleUrl: './driver-bookings-component.scss',
 })
-export class DriverBookingsComponent {
+export class DriverBookingsComponent implements OnInit {
   private readonly bookingsService = inject(BookingsService);
   private readonly tripService = inject(TripsService);
-  private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly toastService = inject(ToastService);
+  private readonly router = inject(Router);
 
   readonly UserRole = UserRole;
   readonly bookings = signal<Booking[]>([]);
   readonly isLoading = signal(false);
   readonly error = signal<string | null>(null);
   readonly pagination = new PaginationService(2);
-  readonly activeFilter = signal<BookingFilter>({});
 
   readonly displayedBookings = computed(() => this.bookings());
 
-  constructor() {
-    this.loadBookings();
+  readonly initialFrom = signal('');
+  readonly initialTo = signal('');
+  readonly initialDate = signal('');
+  readonly initialTime = signal('');
+  readonly activeFilter = signal<BookingFilter>({});
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      const from  = params['from']  ?? '';
+      const to    = params['to']    ?? '';
+      const date  = params['date']  ?? '';
+      const time  = params['time']  ?? '';
+      const page  = Number(params['page'] ?? 1);
+
+      this.initialFrom.set(from);
+      this.initialTo.set(to);
+      this.initialDate.set(date);
+      this.initialTime.set(time);
+
+      this.activeFilter.set({
+        from: from || undefined,
+        to: to || undefined,
+        date: date || undefined,
+        time: time || undefined
+      });
+
+      this.pagination.currentPage.set(page);
+      this.loadBookings();
+    });
   }
 
-  handleFilterChange(rawValues: any): void {
-    this.pagination.currentPage.set(1);
-
-    this.activeFilter.set({
-      from: rawValues.from || undefined,
-      to: rawValues.to || undefined,
-      date: rawValues.date || undefined,
-      time: rawValues.time || undefined
+  handleFilterChange(rawValues: { from?: string; to?: string; date?: string; time?: string }): void {
+    this.updateUrl({
+      from: rawValues.from || null,
+      to: rawValues.to || null,
+      date: rawValues.date || null,
+      time: rawValues.time || null,
+      page: 1
     });
-
-    this.loadBookings();
   }
 
   approveBooking(bookingId: string) {
@@ -95,43 +117,57 @@ export class DriverBookingsComponent {
     });
   }
 
-  nextPage(): void { this.pagination.nextPage(() => this.loadBookings()); }
-  previousPage(): void { this.pagination.previousPage(() => this.loadBookings()); }
+  nextPage(): void {
+    this.updateUrl({ page: this.pagination.currentPage() + 1 });
+  }
+
+  previousPage(): void {
+    this.updateUrl({ page: this.pagination.currentPage() - 1 });
+  }
 
   private loadBookings(): void {
-      this.isLoading.set(true);
-      this.error.set(null);
+    this.isLoading.set(true);
+    this.error.set(null);
   
-      const user = this.authService.getCurrentUser();
-      if (!user) {
-        throwError(() => new Error('No user logged in'));
-        return;
+    const tripId = this.route.snapshot.paramMap.get('tripId');
+    const params: Record<string, any> = {
+      page: this.pagination.currentPage(),
+      pageSize: this.pagination.pageSize,
+    };
+  
+    const filter = this.activeFilter();
+    if (filter.from) params['from']   = filter.from;
+    if (filter.to)   params['to']     = filter.to;
+    if (filter.date) params['date']   = filter.date;
+    if (filter.time) params['time']   = filter.time;
+    if(tripId)       params['tripId'] = tripId;
+  
+    this.bookingsService.getAll(params).subscribe({
+      next: (response: PagedResponse<Booking>) => {
+        this.bookings.set(response.items);
+        this.isLoading.set(false);
+        this.pagination.update(response.totalCount, response.hasNextPage, response.hasPreviousPage);
+      },
+      error: (err: unknown) => {
+        this.error.set('Failed to load bookings. Please try again.');
+        this.isLoading.set(false);
+        this.toastService.error('Failed to load bookings. Please try again.');
       }
-  
-      const tripId = this.route.snapshot.paramMap.get('tripId');
+    });
+  }
 
-      const params: any = {};
-      params.page = this.pagination.currentPage();
-      params.pageSize = this.pagination.pageSize;
-      params.driverId = user.id;
-  
-      if(tripId) params['tripId'] = tripId;
-      if (this.activeFilter()?.from) params['from'] = this.activeFilter().from;
-      if (this.activeFilter()?.to)   params['to']   = this.activeFilter().to;
-      if (this.activeFilter()?.date) params['date'] = this.activeFilter().date;
-      if (this.activeFilter()?.time) params['time'] = this.activeFilter().time;
-  
-      this.bookingsService.getAll(params).subscribe({
-        next: (response: PagedResponse<Booking>) => {
-          this.bookings.set(response.items);
-          this.isLoading.set(false);
-          this.pagination.update(response.totalCount, response.hasNextPage, response.hasPreviousPage);
-        },
-        error: (err: unknown) => {
-          this.error.set('Failed to load bookings. Please try again.');
-          this.isLoading.set(false);
-          this.toastService.error('Failed to load bookings. Please try again.');
-        }
-      });
-    }
+  private updateUrl(overrides: {from?: string | null; to?: string | null; date?: string | null; time?: string | null; page?: number | null;}): void {
+    const page = overrides.page ?? this.pagination.currentPage();
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        from: overrides.from !== undefined ? overrides.from : this.activeFilter().from ?? null,
+        to:   overrides.to   !== undefined ? overrides.to   : this.activeFilter().to   ?? null,
+        date: overrides.date !== undefined ? overrides.date : this.activeFilter().date ?? null,
+        time: overrides.time !== undefined ? overrides.time : this.activeFilter().time ?? null,
+        page:  page > 1 ? page : null,
+      }
+    });
+  }
 }

@@ -15,8 +15,12 @@
     </div>
   } @else {
 
-    <app-filter-bar-component
-          (filterChanged)="handleFilterChange($event)"/>
+     <app-filter-bar-component
+      [initialFrom]="initialFrom()"
+      [initialTo]="initialTo()"
+      [initialDate]="initialDate()"
+      [initialTime]="initialTime()"
+      (filterChanged)="handleFilterChange($event)" />
 
     @if (displayedTrips().length === 0) {
       <div class="empty-state">

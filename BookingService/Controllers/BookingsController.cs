@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Models.Pagination;
 using SharedLibrary.Repositories;
 using SharedLibrary.Utility;
+using System.Security.Claims;
 
 namespace BookingService.Controllers
 {
@@ -25,11 +26,12 @@ namespace BookingService.Controllers
             var pagedRequest = requestDto.ToPagedRequest();
 
             var query = bookingRepo.GetQueryable();
-            if (requestDto.DriverId.HasValue)
-                query = query.Where(t => t.DriverId == requestDto.DriverId.Value);
 
-            if (requestDto.PassengerId.HasValue)
-                query = query.Where(t => t.PassengerId == requestDto.PassengerId.Value);
+            if (User.IsInRole(RoleConstants.Driver))
+                query = query.Where(t => t.DriverId == Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+
+            if (User.IsInRole(RoleConstants.User))
+                query = query.Where(t => t.PassengerId == Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
 
             if (requestDto.TripId.HasValue)
                 query = query.Where(t => t.TripId == requestDto.TripId.Value);

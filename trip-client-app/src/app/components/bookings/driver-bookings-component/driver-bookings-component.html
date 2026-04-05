@@ -16,7 +16,11 @@
   } @else {
 
     <app-filter-bar-component
-          (filterChanged)="handleFilterChange($event)"/>
+      [initialFrom]="initialFrom()"
+      [initialTo]="initialTo()"
+      [initialDate]="initialDate()"
+      [initialTime]="initialTime()"
+      (filterChanged)="handleFilterChange($event)" />
     
     @if (displayedBookings().length === 0) {
       <div class="empty-state">

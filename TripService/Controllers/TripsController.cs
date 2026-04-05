@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Models.Pagination;
 using SharedLibrary.Repositories;
 using SharedLibrary.Utility;
+using System.Security.Claims;
 using TripService.Entities;
 using TripService.Mapper;
 using TripService.Models;
@@ -21,8 +22,8 @@ namespace TripService.Controllers
             var pagedRequest = requestDto.ToPagedRequest();
 
             var query = tripRepo.GetQueryable();
-            if (requestDto.DriverId.HasValue) 
-                query = query.Where(t => t.DriverId == requestDto.DriverId.Value);
+            if (User.IsInRole(RoleConstants.Driver)) 
+                query = query.Where(t => t.DriverId == Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
 
             if (!string.IsNullOrEmpty(requestDto.From))
                 query = query.Where(t => t.From.ToLower().Contains(requestDto.From.Trim().ToLower()));

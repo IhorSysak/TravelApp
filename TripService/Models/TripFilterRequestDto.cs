@@ -12,7 +12,6 @@ namespace TripService.Models
         public string? To { get; init; }
         public DateOnly? Date { get; init; }
         public TimeOnly? Time { get; init; }
-        public Guid? DriverId { get; init; }
         public PagedRequest ToPagedRequest() => new()
         {
             Page = Page,
