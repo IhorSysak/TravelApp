@@ -83,16 +83,12 @@ namespace BookingService.Controllers
         {
             logger.LogInformation("Send booking request: {request}", request);
 
-            var booking = request.ToEntity();
-
-            var created = await bookingRepo.CreateAsync(booking, cancellation);
-            await messageProducer.SendingMessageAsync(request);
-
-            var response = created.ToResponseDto();
+            var created = await bookingRepo.CreateAsync(request.ToEntity(), cancellation);
+            await messageProducer.SendingMessageAsync(created.ToConsumerRequestDto());
 
             logger.LogInformation("Booking sent for trip {TripId} by {Passenger}", request.TripId, request.PassengerName);
 
-            return Ok(response);
+            return Ok(created.ToResponseDto());
         }
 
         [HttpPut("{id:guid}")]

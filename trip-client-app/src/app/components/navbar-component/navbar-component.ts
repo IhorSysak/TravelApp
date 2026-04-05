@@ -4,10 +4,11 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NavigationEnd, Router } from '@angular/router';
 import { UserRole } from '../../models/auth.model';
 import { filter } from 'rxjs/operators';
+import { NotificationPanelComponent } from '../notification-panel-component/notification-panel-component';
 
 @Component({
   selector: 'app-navbar-component',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, NotificationPanelComponent],
   templateUrl: './navbar-component.html',
   styleUrl: './navbar-component.scss',
 })

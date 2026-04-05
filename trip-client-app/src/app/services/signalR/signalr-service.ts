@@ -4,8 +4,8 @@ import { AuthService } from '../auth/auth-service';
 import * as signalR from '@microsoft/signalr';
 import { UserRole } from '../../models/auth.model';
 import { environment } from '../../environments/environment.development';
-import { HttpClient } from '@angular/common/http';
 import { NotificationService } from '../notifications/notification-service';
+import { Notification } from '../../models/notification.model';
 
 @Injectable({
   providedIn: 'root',
@@ -28,27 +28,30 @@ export class SignalRService {
       .withAutomaticReconnect()
       .build();
 
-    this.hubConnection.on('NewBooking', (notification: any) => {
+    this.hubConnection.on('UnreadNotifications', (notifications: Notification[]) => {
+      const currentUser = this.authService.getCurrentUser();
+      if(!currentUser || currentUser.role !== UserRole.DRIVER) return;
+      this.notificationService.addUnread(notifications);
+    });
+
+    this.hubConnection.on('NewBooking', (notification: Notification) => {
+      const currentUser = this.authService.getCurrentUser();
+      if(!currentUser || currentUser.role !== UserRole.DRIVER) return;
       this.toastService.info(notification.message);
-      this.notificationService.markAsRead(notification.notificationId);
+      this.notificationService.addSingle(notification);
     });
 
     this.hubConnection.start()
-      .then(() => {
-        console.log('SignalR connected');
-        this.hubConnection!.invoke('JoinDriverGroup', user.id);
-      })
+      .then(() => this.hubConnection!.invoke('JoinDriverGroup', user.id))
       .catch(err => console.error('SignalR connection error:', err));
   }
 
   stopConnection(): void {
-    if (this.hubConnection) {
-      const user = this.authService.getCurrentUser();
-      if(user) {
-        this.hubConnection.invoke('LeaveDriverGroup', user.id).then(() => {
+    const user = this.authService.getCurrentUser();
+    if (this.hubConnection && user) {
+      this.hubConnection.invoke('LeaveDriverGroup', user.id).then(() => {
           this.hubConnection!.stop();
-        });
-      }
+      });
     }
   }
 }

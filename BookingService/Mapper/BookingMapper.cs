@@ -39,6 +39,13 @@ namespace BookingService.Mapper
            booking.Status,
            booking.BookedAt);
 
+        public static BookingConsumerRequestDto ToConsumerRequestDto(this Booking booking) => new(
+           booking.Id,
+           booking.PassengerName,
+           booking.DriverId,
+           booking.From,
+           booking.To);
+
         public static void ApplyUpdate(this Booking booking, UpdateBookingDto dto)
         {
             if (dto.Seats is not null)

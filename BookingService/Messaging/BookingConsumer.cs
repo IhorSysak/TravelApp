@@ -1,6 +1,7 @@
 ﻿using BookingService.Context;
 using BookingService.Entities;
 using BookingService.Hubs;
+using BookingService.Mapper;
 using BookingService.Models.Booking;
 using Microsoft.AspNetCore.SignalR;
 using RabbitMQ.Client;
@@ -38,40 +39,20 @@ namespace BookingService.Messaging
                 try
                 {
                     var json = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-                    var bookingDto = JsonSerializer.Deserialize<BookingRequestDto>(json);
+                    var bookingDto = JsonSerializer.Deserialize<BookingConsumerRequestDto>(json);
                     if (bookingDto is not null)
                     {
+                        logger.LogInformation("New booking for driver {DriverId} — frim passanger {PassengerName}", bookingDto.DriverId, bookingDto.PassengerName);
+
                         using var scope = scopeFactory.CreateScope();
                         var dbContext = scope.ServiceProvider.GetRequiredService<BookingContext>();
 
-                        var notification = new Notification
-                        {
-                            Id = Guid.NewGuid(),
-                            DriverId = bookingDto.DriverId,
-                            Message = $"New booking! {bookingDto.PassengerName} booked {bookingDto.From} → {bookingDto.To}",
-                            IsRead = false,
-                            CreatedAt = DateTimeOffset.UtcNow
-                        };
+                        var notification = bookingDto.ToEntity();
 
                         dbContext.Notifications.Add(notification);
                         await dbContext.SaveChangesAsync(cancellation);
 
-                        logger.LogInformation("New booking for trip {TripId} — passanger {PassengerName}", bookingDto.TripId, bookingDto.PassengerName);
-
-                        await hubContext.Clients
-                            .Group($"driver-{bookingDto.DriverId}")
-                            .SendAsync("NewBooking",
-                            new
-                            {
-                                bookingDto.TripId,
-                                bookingDto.PassengerName,
-                                bookingDto.PassengerEmail,
-                                bookingDto.From,
-                                bookingDto.To,
-                                bookingDto.Seats,
-                                bookingDto.TotalPrice,
-                                NotificationId = notification.Id
-                            }, cancellation);
+                        await hubContext.Clients.Group($"driver-{bookingDto.DriverId}").SendAsync("NewBooking", notification.ToResponseDto(), cancellation);
                     }
 
                     // Acknowledge the message after processing
