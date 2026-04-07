@@ -1,0 +1,37 @@
+<div class="notification-wrapper">
+    <button type="button" class="trigger-btn" [class.active]="isOpen()" (click)="toggle($event)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bell-icon">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+        </svg>
+        @if(notificationService.hasUnread()) {
+            <span class="notification-badge">{{ notificationService.unreadCount() }}</span>
+        }
+    </button>
+
+    @if (isOpen()) {
+        <div class="notification-panel">
+            <div class="panel-header">
+                 <h4>Notifications</h4>
+                 @if (notificationService.hasUnread()) {
+                    <button type="button" class="btn-link" (click)="markAllAsRead()">
+                        Mark all as read
+                    </button>
+                 }
+                </div>
+
+                <div class="panel-body">
+                    @if (notificationService.notifications().length === 0) {
+                        <div class="empty">No notifications yet.</div>
+                    }
+
+                    @for (notification of notificationService.notifications(); track notification.id) {
+                        <app-notification-card-component
+                            [notification]="notification"
+                            (markAsReadClick)="markAsRead($event)"
+                            (removeClick)="remove($event)" />
+                    }
+                </div>
+        </div>
+    }
+</div>

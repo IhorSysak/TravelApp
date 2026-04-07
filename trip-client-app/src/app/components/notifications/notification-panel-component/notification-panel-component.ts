@@ -1,10 +1,10 @@
 import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
-import { NotificationService } from '../../services/notifications/notification-service';
-import { DatePipe } from '@angular/common';
+import { NotificationService } from '../../../services/notifications/notification-service';
+import { NotificationCardComponent } from '../notification-card-component/notification-card-component';
 
 @Component({
   selector: 'app-notification-panel-component',
-  imports: [DatePipe],
+  imports: [NotificationCardComponent],
   templateUrl: './notification-panel-component.html',
   styleUrl: './notification-panel-component.scss',
 })
@@ -29,8 +29,7 @@ export class NotificationPanelComponent {
     }
   }
 
-  markAsRead(id: string, event: Event): void {
-    event.stopPropagation();
+  markAsRead(id: string): void {
     this.notificationService.markAsRead(id);
   }
 
@@ -38,8 +37,7 @@ export class NotificationPanelComponent {
     this.notificationService.markAllAsRead();
   }
 
-  remove(id: string, event: Event): void {
-    event.stopPropagation();
+  remove(id: string): void {
     this.notificationService.remove(id);
   }
 }
