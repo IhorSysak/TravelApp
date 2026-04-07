@@ -58,6 +58,12 @@ services:
       - trips-db
       - bookings-db
 
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - '6379:6379'
+
 volumes:
   auth-db-data:
   trips-db-data:

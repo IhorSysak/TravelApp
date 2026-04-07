@@ -1,5 +1,4 @@
 ﻿using BookingService.Context;
-using BookingService.Entities;
 using BookingService.Hubs;
 using BookingService.Mapper;
 using BookingService.Models.Booking;

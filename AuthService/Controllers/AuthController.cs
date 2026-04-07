@@ -40,24 +40,5 @@ namespace AuthService.Controllers
             var token = tokenService.GenerateToken(user);
             return Ok(new AuthResponseDto(token, user.ToDto()));
         }
-
-        /*[HttpPost("validate")]
-        [AllowAnonymous]
-        public async Task<IActionResult> ValidateToken(ValidateTokenDto dto, CancellationToken cancellation = default)
-        {
-            var principal = tokenService.GetPrincipalFromToken(dto.Token);
-            if (principal == null)
-                return Unauthorized();
-
-            var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!Guid.TryParse(idClaim, out var userId))
-                return Unauthorized();
-
-            var user = await userRepo.GetByIdAsync(userId, cancellation);
-            if (user == null)
-                return NotFound();
-
-            return Ok(user);
-        }*/
     }
 }

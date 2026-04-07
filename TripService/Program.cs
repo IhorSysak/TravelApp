@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using SharedLibrary.Extensions;
 using SharedLibrary.Infrastructure;
 using SharedLibrary.Repositories;
+using SharedLibrary.Services;
 using System.Text;
 using TripService.Context;
 
@@ -13,9 +14,12 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddDbContext<TripContext>(option => option.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
 
+builder.Services.AddStackExchangeRedisCache(options => options.Configuration = builder.Configuration.GetConnectionString("Cache"));
+
 builder.Services.AddControllers();
 
 builder.Services.AddScoped<DbContext, TripContext>();
+builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

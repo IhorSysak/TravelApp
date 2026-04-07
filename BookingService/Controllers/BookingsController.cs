@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Models.Pagination;
 using SharedLibrary.Repositories;
+using SharedLibrary.Services;
 using SharedLibrary.Utility;
 using System.Security.Claims;
 
@@ -17,12 +18,18 @@ namespace BookingService.Controllers
     public class BookingsController(
         ILogger<BookingsController> logger,
         IMessageProducer messageProducer,
-        IGenericRepository<Booking> bookingRepo) : ControllerBase
+        IGenericRepository<Booking> bookingRepo,
+        ICacheService cache) : ControllerBase
     {
         [HttpGet]
         [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]
         public async Task<IActionResult> GetAllAsync([FromQuery] BookingFilterRequestDto requestDto, CancellationToken cancellation)
         {
+            var cacheKey = CacheKeys.BookingsPage(Request.QueryString.Value ?? string.Empty);
+            var cached = await cache.GetAsync<PagedResponse<BookingResponseDto>>(cacheKey, cancellation);
+            if (cached is not null)
+                return Ok(cached);
+
             var pagedRequest = requestDto.ToPagedRequest();
 
             var query = bookingRepo.GetQueryable();
@@ -68,6 +75,9 @@ namespace BookingService.Controllers
                 TotalCount: bookings.TotalCount,
                 TotalPages: bookings.TotalPages);
 
+            await cache.SetAsync(cacheKey, response, TimeSpan.FromMinutes(1), cancellation);
+            await cache.TrackKeyAsync(CacheKeys.BookingsPrefix, cacheKey, cancellation);
+
             return Ok(response);
         }
 
@@ -75,8 +85,18 @@ namespace BookingService.Controllers
         [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]
         public async Task<IActionResult> GetByIdAsync(Guid id, CancellationToken cancellation)
         {
+            var cacheKey = CacheKeys.BookingById(id);
+            var cached = await cache.GetAsync<BookingResponseDto>(cacheKey, cancellation);
+            if (cached is not null)
+                return Ok(cached);
+
             var booking = await bookingRepo.GetByIdAsync(id, cancellation);
-            return booking is null ? NotFound() : Ok(booking.ToResponseDto());
+            if (booking is null) return NotFound();
+
+            var response = booking.ToResponseDto();
+            await cache.SetAsync(cacheKey, response, TimeSpan.FromMinutes(5), cancellation);
+
+            return Ok(response);
         }
 
         [HttpPost]
@@ -89,6 +109,8 @@ namespace BookingService.Controllers
             await messageProducer.SendingMessageAsync(created.ToConsumerRequestDto());
 
             logger.LogInformation("Booking sent for trip {TripId} by {Passenger}", request.TripId, request.PassengerName);
+
+            await cache.RemoveByPrefixAsync(CacheKeys.BookingsPrefix, cancellation);
 
             return Ok(created.ToResponseDto());
         }
@@ -103,6 +125,10 @@ namespace BookingService.Controllers
             existing.ApplyUpdate(dto);
 
             var updated = await bookingRepo.UpdateAsync(existing, cancellation);
+
+            await cache.RemoveAsync(CacheKeys.BookingById(id), cancellation);
+            await cache.RemoveByPrefixAsync(CacheKeys.BookingsPrefix, cancellation);
+
             return Ok(updated?.ToResponseDto());
         }
 
@@ -118,6 +144,9 @@ namespace BookingService.Controllers
 
             await bookingRepo.UpdateAsync(booking, cancellation);
 
+            await cache.RemoveAsync(CacheKeys.BookingById(id), cancellation);
+            await cache.RemoveByPrefixAsync(CacheKeys.BookingsPrefix, cancellation);
+
             return Ok(booking.ToResponseDto());
         }
 
@@ -132,6 +161,9 @@ namespace BookingService.Controllers
 
             await bookingRepo.UpdateAsync(existing, cancellation);
 
+            await cache.RemoveAsync(CacheKeys.BookingById(id), cancellation);
+            await cache.RemoveByPrefixAsync(CacheKeys.BookingsPrefix, cancellation);
+
             return Ok(existing.ToResponseDto());
         }
 
@@ -140,6 +172,10 @@ namespace BookingService.Controllers
         public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken cancellation)
         {
             var deleted = await bookingRepo.DeleteAsync(id, cancellation);
+
+            await cache.RemoveAsync(CacheKeys.BookingById(id), cancellation);
+            await cache.RemoveByPrefixAsync(CacheKeys.BookingsPrefix, cancellation);
+
             return deleted ? NoContent() : NotFound();
         }
     }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.Models.Pagination;
 using SharedLibrary.Repositories;
+using SharedLibrary.Services;
 using SharedLibrary.Utility;
 using System.Security.Claims;
 using TripService.Entities;
@@ -13,12 +14,17 @@ namespace TripService.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class TripsController(IGenericRepository<Trip> tripRepo) : ControllerBase
+    public class TripsController(IGenericRepository<Trip> tripRepo, ICacheService cache) : ControllerBase
     {
         [HttpGet]
         [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]
         public async Task<IActionResult> GetAllAsync([FromQuery] TripFilterRequestDto requestDto, CancellationToken cancellation)
         {
+            var cacheKey = CacheKeys.TripsPage(Request.QueryString.Value ?? string.Empty);
+            var cached = await cache.GetAsync<PagedResponse<TripResponseDto>>(cacheKey, cancellation);
+            if(cached is not null)
+                return Ok(cached);
+
             var pagedRequest = requestDto.ToPagedRequest();
 
             var query = tripRepo.GetQueryable();
@@ -57,6 +63,9 @@ namespace TripService.Controllers
                 TotalCount: trips.TotalCount,
                 TotalPages: trips.TotalPages);
 
+            await cache.SetAsync(cacheKey, response, TimeSpan.FromMinutes(1), cancellation);
+            await cache.TrackKeyAsync(CacheKeys.TripsPrefix, cacheKey, cancellation);
+
             return Ok(response);
         }
 
@@ -64,8 +73,18 @@ namespace TripService.Controllers
         [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]
         public async Task<IActionResult> GetByIdAsync(Guid id, CancellationToken cancellation)
         {
+            var cacheKey = CacheKeys.TripById(id);
+            var cached = await cache.GetAsync<TripResponseDto>(cacheKey, cancellation);
+            if (cached is not null)
+                return Ok(cached);
+
             var trip = await tripRepo.GetByIdAsync(id, cancellation);
-            return trip is null ? NotFound() : Ok(trip.ToResponseDto());
+            if (trip is null) return NotFound();
+
+            var response = trip.ToResponseDto();
+            await cache.SetAsync(cacheKey, response, TimeSpan.FromMinutes(2), cancellation);
+
+            return Ok(response);
         }
 
         [HttpPost]
@@ -74,9 +93,10 @@ namespace TripService.Controllers
         {
             var trip = dto.ToEntity();
             var created = await tripRepo.CreateAsync(trip, cancellation);
-            var response = created.ToResponseDto();
 
-            return Ok(response);
+            await cache.RemoveByPrefixAsync(CacheKeys.TripsPrefix, cancellation);
+
+            return Ok(created.ToResponseDto());
         }
 
         [HttpPut("{id:guid}")]
@@ -89,6 +109,10 @@ namespace TripService.Controllers
             existing.ApplyUpdate(dto);
 
             var updated = await tripRepo.UpdateAsync(existing, cancellation);
+
+            await cache.RemoveAsync(CacheKeys.TripById(id), cancellation);
+            await cache.RemoveByPrefixAsync(CacheKeys.TripsPrefix, cancellation);
+
             return Ok(updated?.ToResponseDto());
         }
 
@@ -103,6 +127,9 @@ namespace TripService.Controllers
 
             var updated = await tripRepo.UpdateAsync(existing, cancellation);
 
+            await cache.RemoveAsync(CacheKeys.TripById(id), cancellation);
+            await cache.RemoveByPrefixAsync(CacheKeys.TripsPrefix, cancellation);
+
             return updated is null ? BadRequest("Could not update seats") : Ok(updated.ToResponseDto());
         }
 
@@ -111,7 +138,12 @@ namespace TripService.Controllers
         public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken cancellation)
         {
             var deleted = await tripRepo.DeleteAsync(id, cancellation);
-            return deleted ? NoContent() : NotFound();
+            if (!deleted) return NotFound();
+
+            await cache.RemoveAsync(CacheKeys.TripById(id), cancellation);
+            await cache.RemoveByPrefixAsync(CacheKeys.TripsPrefix, cancellation);
+
+            return NoContent();
         }
     }
 }

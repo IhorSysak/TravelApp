@@ -1,20 +1,23 @@
+using BookingService.Context;
+using BookingService.Hubs;
+using BookingService.Messaging;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using BookingService.Context;
 using RabbitMQ.Client;
 using SharedLibrary.Extensions;
 using SharedLibrary.Infrastructure;
-using System.Text;
-using BookingService.Messaging;
 using SharedLibrary.Repositories;
-using BookingService.Hubs;
+using SharedLibrary.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddDbContext<BookingContext>(option => option.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
+
+builder.Services.AddStackExchangeRedisCache(options => options.Configuration = builder.Configuration.GetConnectionString("Cache"));
 
 builder.Services.AddControllers();
 
@@ -28,6 +31,7 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddScoped<DbContext, BookingContext>();
+builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddSingleton<IConnectionFactory>(new ConnectionFactory
 {
