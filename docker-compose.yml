@@ -8,7 +8,24 @@ services:
     ports:
       - '5672:5672'
       - '15672:15672'
-  
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: "redis"
+    image: redis:latest
+    restart: always
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   auth-db:
     container_name: "auth-db"
     image: postgres:16-alpine
@@ -20,6 +37,11 @@ services:
       - '5433:5432'
     volumes:
       - auth-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   trips-db:
     container_name: "trips-db"
@@ -32,6 +54,11 @@ services:
       - 5434:5432
     volumes:
       - trips-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   bookings-db:
     container_name: "bookings-db"
@@ -44,6 +71,11 @@ services:
       - '5435:5432'
     volumes:
       - bookings-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     container_name: "pgadmin"
@@ -57,12 +89,87 @@ services:
       - auth-db
       - trips-db
       - bookings-db
-
-  redis:
-    image: redis:latest
-    restart: always
+   
+  authservice:
+    container_name: "auth-service"
+    image: ${DOCKER_REGISTRY-}authservice
+    build:
+      context: .
+      dockerfile: AuthService/Dockerfile
     ports:
-      - '6379:6379'
+      - '7001:8080'
+    environment:
+      - ConnectionStrings__Database=Host=auth-db;Port=5432;Database=auth_db;Username=postgres;Password=postgres
+      - JwtSettings__Secret=guyRyG4LLYFAXvhEem3I5yTpSb8cKGd4WgYVltl98Rv
+      - JwtSettings__Issuer=TripBookingApp
+      - JwtSettings__Audience=TripBookingApp
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      auth-db:
+        condition: service_healthy
+
+  bookingservice:
+    container_name: "booking-service"
+    image: ${DOCKER_REGISTRY-}bookingservice
+    build:
+      context: .
+      dockerfile: BookingService/Dockerfile
+    ports:
+      - '7003:8080'
+    environment:
+      - ConnectionStrings__Database=Host=bookings-db;Port=5432;Database=bookings_db;Username=postgres;Password=postgres
+      - ConnectionStrings__Cache=redis:6379
+      - JwtSettings__Secret=guyRyG4LLYFAXvhEem3I5yTpSb8cKGd4WgYVltl98Rv
+      - JwtSettings__Issuer=TripBookingApp
+      - JwtSettings__Audience=TripBookingApp
+      - RabbitMq__HostName=rabbitmq
+      - RabbitMq__UserName=user
+      - RabbitMq__Password=password
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      bookings-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+
+  tripservice:
+    container_name: "trip-service"
+    image: ${DOCKER_REGISTRY-}tripservice
+    build:
+      context: .
+      dockerfile: TripService/Dockerfile
+    ports:
+      - '7002:8080'
+    environment:
+      - ConnectionStrings__Database=Host=trips-db;Port=5432;Database=trips_db;Username=postgres;Password=postgres
+      - ConnectionStrings__Cache=redis:6379
+      - JwtSettings__Secret=guyRyG4LLYFAXvhEem3I5yTpSb8cKGd4WgYVltl98Rv
+      - JwtSettings__Issuer=TripBookingApp
+      - JwtSettings__Audience=TripBookingApp
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      trips-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  angular-ui:
+    container_name: "angular-ui"
+    build:
+      context: ./trip-client-app
+      dockerfile: Dockerfile
+    ports:
+      - '4200:80'
+    depends_on:
+      - authservice
+      - tripservice
+      - bookingservice
 
 volumes:
   auth-db-data:

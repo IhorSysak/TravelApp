@@ -1,4 +1,5 @@
 export const environment = {
+    production: false,
     bookingApiUrl: 'https://localhost:7265/api/bookings/',
     notificationApiUrl: 'https://localhost:7265/api/notification/',
     tripApiUrl: 'https://localhost:7118/api/trips/',

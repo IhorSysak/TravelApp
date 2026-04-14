@@ -35,9 +35,9 @@ builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddSingleton<IConnectionFactory>(new ConnectionFactory
 {
-    HostName = "localhost",
-    UserName = "user",
-    Password = "password",
+    HostName = builder.Configuration["RabbitMq:HostName"] ?? "localhost",
+    UserName = builder.Configuration["RabbitMq:UserName"] ?? "user",
+    Password = builder.Configuration["RabbitMq:Password"] ?? "password",
     VirtualHost = "/"
 });
 
