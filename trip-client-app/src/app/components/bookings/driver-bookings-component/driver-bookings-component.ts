@@ -93,13 +93,13 @@ export class DriverBookingsComponent implements OnInit {
     });
   }
 
-  cancelBooking(bookingId: string): void {
+  rejectBooking(bookingId: string): void {
     const bookingToCancel = this.bookings().find(b => b.id === bookingId);
     if (!bookingToCancel) return;
   
     this.isLoading.set(true);
   
-    this.bookingsService.updateStatus(bookingId, { status: BookingStatus.CANCELLED }).pipe(
+    this.bookingsService.updateStatus(bookingId, { status: BookingStatus.REJECTED }).pipe(
       switchMap(() => this.tripService.getById(bookingToCancel.tripId)),
       switchMap((trip) => {
         const remainingSeats = trip.availableSeats + bookingToCancel.seats;

@@ -1,6 +1,7 @@
 export enum BookingStatus {
   PENDING = 'Pending',
   CONFIRMED = 'Confirmed',
+  REJECTED = 'Rejected',
   CANCELLED = 'Cancelled'
 }
 
@@ -41,6 +42,11 @@ export interface UpdateBookingSeatsRequest {
 }
 
 export interface UpdateBookingStatusRequest {
+  status: BookingStatus;
+}
+
+export interface StatusChangedModel {
+  message: string;
   status: BookingStatus;
 }
 

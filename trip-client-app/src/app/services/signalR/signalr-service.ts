@@ -6,6 +6,8 @@ import { UserRole } from '../../models/auth.model';
 import { environment } from '../../environments/environment.development';
 import { NotificationService } from '../notifications/notification-service';
 import { Notification } from '../../models/notification.model';
+import { BookingStatus, StatusChangedModel } from '../../models/booking.model';
+import { ToastType } from '../../models/toast.model';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +21,7 @@ export class SignalRService {
 
   startConnection(): void {
     const user = this.authService.getCurrentUser();
-    if(!user || user.role !== UserRole.DRIVER) return;
+    if(!user) return;
 
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(environment.signalRHubUrl, {
@@ -29,29 +31,46 @@ export class SignalRService {
       .build();
 
     this.hubConnection.on('UnreadNotifications', (notifications: Notification[]) => {
-      const currentUser = this.authService.getCurrentUser();
-      if(!currentUser || currentUser.role !== UserRole.DRIVER) return;
       this.notificationService.addUnread(notifications);
     });
 
     this.hubConnection.on('NewBooking', (notification: Notification) => {
-      const currentUser = this.authService.getCurrentUser();
-      if(!currentUser || currentUser.role !== UserRole.DRIVER) return;
       this.toastService.info(notification.message);
       this.notificationService.addSingle(notification);
     });
 
+    this.hubConnection.on('BookingStatusChanged', (data: StatusChangedModel) => {
+      const statusMap: Record<BookingStatus, ToastType> = {
+        [BookingStatus.CONFIRMED]: 'success',
+        [BookingStatus.CANCELLED]: 'warning',
+        [BookingStatus.REJECTED]: 'error',
+        [BookingStatus.PENDING]: 'info',
+      };
+
+      const toastType = statusMap[data.status] ?? 'info';
+
+      this.toastService.showToast(data.message, toastType, 6000);
+    });
+
     this.hubConnection.start()
-      .then(() => this.hubConnection!.invoke('JoinDriverGroup', user.id))
+      .then(() => {
+        if(user.role === UserRole.DRIVER) {
+          this.hubConnection!.invoke('JoinDriverGroup');
+        } else {
+          this.hubConnection!.invoke('JoinPassengerGroup');
+        }
+      })
       .catch(err => console.error('SignalR connection error:', err));
   }
 
   stopConnection(): void {
     const user = this.authService.getCurrentUser();
-    if (this.hubConnection && user) {
-      this.hubConnection.invoke('LeaveDriverGroup', user.id).then(() => {
-          this.hubConnection!.stop();
-      });
-    }
+    if (!this.hubConnection || !user) return;
+
+    const leaveMethod = user.role === UserRole.DRIVER ? 'LeaveDriverGroup' : 'LeavePassengerGroup';
+
+    this.hubConnection.invoke(leaveMethod, user.id).then(() => {
+      this.hubConnection!.stop();
+    });
   }
 }

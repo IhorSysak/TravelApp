@@ -1,9 +1,11 @@
 ﻿using BookingService.Entities;
+using BookingService.Hubs;
 using BookingService.Mapper;
 using BookingService.Messaging;
 using BookingService.Models.Booking;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using SharedLibrary.Models.Pagination;
 using SharedLibrary.Repositories;
 using SharedLibrary.Services;
@@ -19,13 +21,16 @@ namespace BookingService.Controllers
         ILogger<BookingsController> logger,
         IMessageProducer messageProducer,
         IGenericRepository<Booking> bookingRepo,
+        IHubContext<BookingHub> hubContext,
         ICacheService cache) : ControllerBase
     {
+        private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
         [HttpGet]
         [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]
         public async Task<IActionResult> GetAllAsync([FromQuery] BookingFilterRequestDto requestDto, CancellationToken cancellation)
         {
-            var cacheKey = CacheKeys.BookingsPage(Request.QueryString.Value ?? string.Empty);
+            var cacheKey = CacheKeys.BookingsPage(UserId, Request.QueryString.Value ?? string.Empty);
             var cached = await cache.GetAsync<PagedResponse<BookingResponseDto>>(cacheKey, cancellation);
             if (cached is not null)
                 return Ok(cached);
@@ -152,7 +157,7 @@ namespace BookingService.Controllers
 
         [HttpPatch("{id:guid}/status")]
         [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]
-        public async Task<IActionResult> UpdateStatus(Guid id, UpdateStatusDto updateDto, CancellationToken cancellation)
+        public async Task<IActionResult> UpdateStatusAsync(Guid id, UpdateStatusDto updateDto, CancellationToken cancellation)
         {
             var existing = await bookingRepo.GetByIdAsync(id, cancellation);
             if (existing is null) return NotFound();
@@ -160,6 +165,25 @@ namespace BookingService.Controllers
             existing.Status = updateDto.Status;
 
             await bookingRepo.UpdateAsync(existing, cancellation);
+
+            if (User.IsInRole(RoleConstants.Driver)) 
+            {
+                var message = updateDto.Status switch
+                {
+                    BookingStatus.Confirmed => $"Your booking for {existing.From} -> {existing.To} has been confirmed!",
+                    BookingStatus.Rejected => $"Your booking for {existing.From} -> {existing.To} was rejected",
+                    _ => null
+                };
+
+                if (message is not null) 
+                {
+                    await hubContext.Clients.Group($"passenger-{existing.PassengerId}").SendAsync("BookingStatusChanged", new
+                    {
+                        message,
+                        updateDto.Status
+                    }, cancellation);
+                }
+            }
 
             await cache.RemoveAsync(CacheKeys.BookingById(id), cancellation);
             await cache.RemoveByPrefixAsync(CacheKeys.BookingsPrefix, cancellation);

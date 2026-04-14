@@ -30,7 +30,7 @@
       </button>
 
       @if (booking().status === 'Pending') {
-        <button type="button" class="btn btn-danger btn-sm" (click)="cancelClick.emit(booking().id)">
+        <button type="button" class="btn btn-danger btn-sm" (click)="rejectClick.emit(booking().id)">
           {{ mode() === UserRole.DRIVER ? 'Reject' : 'Cancel' }}
       </button>
       }

@@ -16,11 +16,13 @@ namespace TripService.Controllers
     [Authorize]
     public class TripsController(IGenericRepository<Trip> tripRepo, ICacheService cache) : ControllerBase
     {
+        private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
         [HttpGet]
         [Authorize(Roles = $"{RoleConstants.Driver},{RoleConstants.User}")]
         public async Task<IActionResult> GetAllAsync([FromQuery] TripFilterRequestDto requestDto, CancellationToken cancellation)
         {
-            var cacheKey = CacheKeys.TripsPage(Request.QueryString.Value ?? string.Empty);
+            var cacheKey = CacheKeys.TripsPage(UserId, Request.QueryString.Value ?? string.Empty);
             var cached = await cache.GetAsync<PagedResponse<TripResponseDto>>(cacheKey, cancellation);
             if(cached is not null)
                 return Ok(cached);

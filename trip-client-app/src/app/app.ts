@@ -19,7 +19,7 @@ export class App {
   constructor() {
     effect(() => {
       const user = this.authService.currentUser();
-      if(user?.role === UserRole.DRIVER) {
+      if(user) {
         this.signalRService.startConnection();
       } else {
         this.signalRService.stopConnection();

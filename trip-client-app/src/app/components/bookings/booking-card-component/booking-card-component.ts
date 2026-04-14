@@ -15,7 +15,7 @@ export class BookingCardComponent {
   readonly booking = input.required<Booking>();
   readonly mode = input.required<UserRole>();
 
-  readonly cancelClick = output<string>();
+  readonly rejectClick = output<string>();
   readonly approveClick = output<string>();
 
   readonly isExpanded = signal(false);
